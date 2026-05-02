@@ -1,7 +1,7 @@
 node_modules/
 dist/
 .env
-uploads/covers/
-uploads/chapters/
+uploads/
+MongoDBCompass/
 *.log
 .DS_Store
