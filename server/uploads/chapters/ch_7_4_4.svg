@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1200" viewBox="0 0 800 1200">
+  <rect width="800" height="1200" fill="white"/>
+  <rect x="50" y="40" width="700" height="1120" fill="#f9731622" rx="8"/>
+  <text x="400" y="300" text-anchor="middle" font-size="32" fill="#f97316" font-family="sans-serif" font-weight="bold">校园诡谈</text>
+  <text x="400" y="360" text-anchor="middle" font-size="24" fill="#666" font-family="sans-serif">第4话 第4页</text>
+  <rect x="100" y="420" width="600" height="400" fill="#f9731611" rx="8"/>
+  <text x="400" y="640" text-anchor="middle" font-size="20" fill="#999" font-family="sans-serif">[ 示例内容 - 漫画画面 ]</text>
+</svg>
