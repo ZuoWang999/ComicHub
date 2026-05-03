@@ -88,4 +88,30 @@ export const votesAPI = {
   getComicStats: (comicId) => api.get(`/votes/comic/${comicId}/stats`),
 }
 
+export const rookieAPI = {
+  getList: (params) => api.get('/rookie', { params }),
+  getFeatured: () => api.get('/rookie/featured'),
+  getById: (id) => api.get(`/rookie/${id}`),
+  create: (formData) => api.post('/rookie', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  vote: (id) => api.post(`/rookie/${id}/vote`),
+  rate: (id, data) => api.post(`/rookie/${id}/rate`, data),
+  updateStatus: (id, data) => api.put(`/rookie/${id}/status`, data),
+}
+
+export const fanartAPI = {
+  getByComic: (comicId, params) => api.get(`/fanart/comic/${comicId}`, { params }),
+  getFeatured: () => api.get('/fanart/featured'),
+  getById: (id) => api.get(`/fanart/${id}`),
+  create: (formData) => api.post('/fanart', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  like: (id) => api.post(`/fanart/${id}/like`),
+  approve: (id) => api.put(`/fanart/${id}/approve`),
+  delete: (id) => api.delete(`/fanart/${id}`),
+}
+
+export const pointsAPI = {
+  getMe: () => api.get('/points/me'),
+  checkin: () => api.post('/points/checkin'),
+  readChapter: (chapterId) => api.post(`/points/read/${chapterId}`),
+}
+
 export default api

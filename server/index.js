@@ -11,6 +11,9 @@ const commentsRoutes = require('./routes/comments')
 const forumRoutes = require('./routes/forum')
 const tagsRoutes = require('./routes/tags')
 const votesRoutes = require('./routes/votes')
+const rookieRoutes = require('./routes/rookie')
+const fanartRoutes = require('./routes/fanart')
+const pointsRoutes = require('./routes/points')
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -28,9 +31,12 @@ app.use('/api/comments', commentsRoutes)
 app.use('/api/forum', forumRoutes)
 app.use('/api/tags', tagsRoutes)
 app.use('/api/votes', votesRoutes)
+app.use('/api/rookie', rookieRoutes)
+app.use('/api/fanart', fanartRoutes)
+app.use('/api/points', pointsRoutes)
 
 const clientDist = path.join(__dirname, '..', 'client', 'dist')
-app.use(express.static(clientDist))
+app.use(express.static(clientDist, { setHeaders: (res) => { res.set('Cache-Control', 'no-cache, no-store, must-revalidate') } }))
 app.get('*', (req, res) => {
   if (!req.path.startsWith('/api')) {
     res.sendFile(path.join(clientDist, 'index.html'))

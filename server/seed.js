@@ -10,6 +10,8 @@ const Tag = require('./models/Tag')
 const ForumCategory = require('./models/ForumCategory')
 const Topic = require('./models/Topic')
 const ChapterVote = require('./models/ChapterVote')
+const Achievement = require('./models/Achievement')
+const RookieWork = require('./models/RookieWork')
 
 const comicsData = [
   { title: '星辰变', author: '我吃西红柿', description: '一名少年，天生无法修炼内功。为得到父亲重视，他毅然选择修炼痛苦艰难的外功。从炼体到星辰变之主，穿梭三界的热血传奇。', categories: ['奇幻', '热血', '动作'], contentTags: ['修仙', '少年漫', '逆袭', '东方玄幻'], schedule: '周刊', isNewcomer: false },
@@ -81,6 +83,8 @@ async function seed() {
   await ForumCategory.deleteMany({})
   await Topic.deleteMany({})
   await ChapterVote.deleteMany({})
+  await Achievement.deleteMany({})
+  await RookieWork.deleteMany({})
   console.log('Old data cleared')
 
   const admin = await User.create({
@@ -110,7 +114,17 @@ async function seed() {
     const c = await ForumCategory.create(cat)
     createdCategories.push(c)
   }
-  console.log('Forum categories:', createdCategories.length)
+  await Achievement.create([
+    { name: '初露锋芒', description: '连续打卡7天', icon: '🔥', type: 'reading', condition: { metric: 'checkin', threshold: 7 }, points: 50, rarity: 'common' },
+    { name: '阅读之星', description: '累计阅读100话', icon: '📖', type: 'reading', condition: { metric: 'chaptersRead', threshold: 100 }, points: 100, rarity: 'common' },
+    { name: '追更狂魔', description: '累计阅读500话', icon: '⚡', type: 'reading', condition: { metric: 'chaptersRead', threshold: 500 }, points: 300, rarity: 'rare' },
+    { name: '评论家', description: '发表50条评论', icon: '💬', type: 'social', condition: { metric: 'comments', threshold: 50 }, points: 100, rarity: 'common' },
+    { name: '坚持不懈', description: '连续打卡30天', icon: '💪', type: 'reading', condition: { metric: 'checkin', threshold: 30 }, points: 200, rarity: 'rare' },
+    { name: '伯乐之眼', description: '为10部新人作品投票', icon: '👁', type: 'social', condition: { metric: 'rookieVotes', threshold: 10 }, points: 150, rarity: 'rare' },
+    { name: '百科书', description: '累计阅读1000话', icon: '📚', type: 'reading', condition: { metric: 'chaptersRead', threshold: 1000 }, points: 500, rarity: 'epic' },
+    { name: '传奇读者', description: '累计阅读5000话', icon: '👑', type: 'reading', condition: { metric: 'chaptersRead', threshold: 5000 }, points: 1000, rarity: 'legendary' },
+  ])
+  console.log('Achievements seeded')
 
   const colors = ['#6366f1', '#ef4444', '#8b5cf6', '#ec4899', '#6b7280', '#f59e0b', '#06b6d4', '#7c3aed', '#3b82f6', '#22c55e', '#92400e', '#0284c7', '#d946ef', '#f97316', '#dc2626', '#10b981']
   const createdComics = []

@@ -7,6 +7,7 @@ const NAV_LINKS = [
   { to: '/browse', label: '分类' },
   { to: '/browse?sort=-updatedAt', label: '更新' },
   { to: '/browse?sort=-hotScore', label: '排行' },
+  { to: '/rookie', label: '孵化器' },
   { to: '/community', label: '社区' },
 ]
 

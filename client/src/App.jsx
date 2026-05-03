@@ -15,6 +15,10 @@ import CreateTopic from './pages/CreateTopic'
 import Dashboard from './pages/Admin/Dashboard'
 import ComicForm from './pages/Admin/ComicForm'
 import ChapterUpload from './pages/Admin/ChapterUpload'
+import Rookie from './pages/Rookie'
+import RookieDetail from './pages/RookieDetail'
+import CreateRookieWork from './pages/CreateRookieWork'
+import FanartZone from './pages/FanartZone'
 
 function App() {
   return (
@@ -26,6 +30,7 @@ function App() {
           <Route path="/browse" element={<Browse />} />
           <Route path="/comic/:id" element={<ComicDetail />} />
           <Route path="/comic/:comicId/reader/:chapterId" element={<Reader />} />
+          <Route path="/comic/:comicId/fanart" element={<FanartZone />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/profile/:userId" element={<Profile />} />
@@ -33,6 +38,9 @@ function App() {
           <Route path="/community/category/:categoryId" element={<ForumCategory />} />
           <Route path="/community/topic/:topicId" element={<TopicDetail />} />
           <Route path="/community/create" element={<CreateTopic />} />
+          <Route path="/rookie" element={<Rookie />} />
+          <Route path="/rookie/:id" element={<RookieDetail />} />
+          <Route path="/rookie/create" element={<CreateRookieWork />} />
           <Route path="/admin" element={<Dashboard />} />
           <Route path="/admin/comic/new" element={<ComicForm />} />
           <Route path="/admin/comic/:id/edit" element={<ComicForm />} />
