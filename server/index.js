@@ -9,6 +9,8 @@ const comicsRoutes = require('./routes/comics')
 const chaptersRoutes = require('./routes/chapters')
 const commentsRoutes = require('./routes/comments')
 const forumRoutes = require('./routes/forum')
+const tagsRoutes = require('./routes/tags')
+const votesRoutes = require('./routes/votes')
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -24,6 +26,8 @@ app.use('/api/comics', comicsRoutes)
 app.use('/api/chapters', chaptersRoutes)
 app.use('/api/comments', commentsRoutes)
 app.use('/api/forum', forumRoutes)
+app.use('/api/tags', tagsRoutes)
+app.use('/api/votes', votesRoutes)
 
 const clientDist = path.join(__dirname, '..', 'client', 'dist')
 app.use(express.static(clientDist))

@@ -34,9 +34,12 @@ export const authAPI = {
 export const comicsAPI = {
   getList: (params) => api.get('/comics', { params }),
   getCategories: () => api.get('/comics/categories'),
-  getHot: () => api.get('/comics/hot'),
+  getHot: (limit) => api.get('/comics/hot', { params: { limit } }),
+  getRankings: (type, limit) => api.get('/comics/rankings', { params: { type, limit } }),
+  getSchedule: () => api.get('/comics/schedule'),
   getLatest: () => api.get('/comics/latest'),
   getById: (id) => api.get(`/comics/${id}`),
+  follow: (id) => api.post(`/comics/follow/${id}`),
   create: (formData) => api.post('/comics', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   update: (id, formData) => api.put(`/comics/${id}`, formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   delete: (id) => api.delete(`/comics/${id}`),
@@ -72,6 +75,17 @@ export const forumAPI = {
   createReply: (topicId, data) => api.post(`/forum/topics/${topicId}/replies`, data),
   deleteReply: (id) => api.delete(`/forum/replies/${id}`),
   likeReply: (id) => api.post(`/forum/replies/${id}/like`),
+}
+
+export const tagsAPI = {
+  getList: (params) => api.get('/tags', { params }),
+  getHot: (type) => api.get('/tags/hot', { params: { type } }),
+}
+
+export const votesAPI = {
+  submit: (data) => api.post('/votes', data),
+  getByChapter: (chapterId) => api.get(`/votes/chapter/${chapterId}`),
+  getComicStats: (comicId) => api.get(`/votes/comic/${comicId}/stats`),
 }
 
 export default api
