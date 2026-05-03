@@ -100,6 +100,26 @@ export default function Home() {
       )}
 
       <div className="max-w-7xl mx-auto px-4 -mt-6 relative z-10">
+        {/* Category Nav */}
+        <div className="bg-white rounded-2xl shadow-sm p-4 mb-6 border border-gray-50">
+          <div className="flex items-center justify-between overflow-x-auto scrollbar-hide pb-1">
+            {['🔥 少年', '🌸 少女', '📰 青年', '🌹 女性', '🧒 少儿'].map((d, i) => (
+              <Link key={d} to={`/browse?tag=${d.slice(2)}`}
+                className={`flex-shrink-0 px-5 py-2 rounded-full text-sm font-bold transition mx-0.5 ${i === 0 ? 'bg-gradient-to-r from-pink-500 to-indigo-600 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                {d}
+              </Link>
+            ))}
+          </div>
+          <div className="flex justify-between mt-3 text-xs text-gray-400 px-1">
+            <Link to="/browse" className="hover:text-pink-500">国漫 →</Link>
+            <Link to="/browse" className="hover:text-pink-500">日漫 →</Link>
+            <Link to="/browse" className="hover:text-pink-500">韩漫 →</Link>
+            <Link to="/browse" className="hover:text-pink-500">全彩 →</Link>
+            <Link to="/browse" className="hover:text-pink-500">条漫 →</Link>
+            <Link to="/rookie" className="hover:text-pink-500">新人 →</Link>
+            <Link to="/browse" className="hover:text-pink-500">完结 →</Link>
+          </div>
+        </div>
         {/* Featured Row */}
         {featuredComics.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
