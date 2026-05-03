@@ -1,143 +1,217 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { comicsAPI, tagsAPI, forumAPI } from '../services/api'
-import ComicCard from '../components/ComicCard'
-import TopicCard from '../components/TopicCard'
 import Loading from '../components/Loading'
 
-const TAB_LIST = [
-  { key: 'weekly', label: '本周热榜' },
-  { key: 'monthly', label: '月度人气' },
-  { key: 'newcomer', label: '新人黑马' },
-]
+const SECTIONS = ['hot', 'rankings', 'newcomer', 'latest', 'community']
+
+function SectionTitle({ title, more }) {
+  return (
+    <div className="flex items-center justify-between mb-4">
+      <h2 className="text-lg font-extrabold text-gray-900 dark:text-white flex items-center">
+        <span className="w-1 h-5 bg-gradient-to-b from-pink-500 to-indigo-600 rounded-full mr-2.5"></span>
+        {title}
+      </h2>
+      {more && <Link to={more} className="text-xs text-gray-400 hover:text-pink-500 flex items-center space-x-1">查看更多 <span>→</span></Link>}
+    </div>
+  )
+}
+
+function ScrollRow({ children }) {
+  const ref = useRef(null)
+  const scroll = (dir) => {
+    if (ref.current) ref.current.scrollBy({ left: dir * 300, behavior: 'smooth' })
+  }
+  return (
+    <div className="relative group/row">
+      <button onClick={() => scroll(-1)} className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/90 shadow-lg rounded-full items-center justify-center hidden group-hover/row:flex hover:bg-white transition">
+        ‹
+      </button>
+      <div ref={ref} className="flex space-x-3 overflow-x-auto scrollbar-hide pb-2" style={{ scrollSnapType: 'x mandatory' }}>
+        <div className="flex space-x-3 pr-8">
+          {children}
+        </div>
+      </div>
+      <button onClick={() => scroll(1)} className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white/90 shadow-lg rounded-full items-center justify-center hidden group-hover/row:flex hover:bg-white transition">
+        ›
+      </button>
+    </div>
+  )
+}
 
 export default function Home() {
-  const [rankings, setRankings] = useState([])
-  const [latestComics, setLatestComics] = useState([])
-  const [hotTags, setHotTags] = useState([])
-  const [hotTopics, setHotTopics] = useState([])
+  const [data, setData] = useState({ hot: [], rankings: [], newcomer: [], latest: [], topics: [], tags: [] })
   const [loading, setLoading] = useState(true)
-  const [rankTab, setRankTab] = useState('weekly')
 
   useEffect(() => {
     Promise.all([
-      comicsAPI.getRankings('weekly'),
+      comicsAPI.getHot(12),
+      comicsAPI.getRankings('weekly', 10),
+      comicsAPI.getList({ isNewcomer: true, limit: 10, sort: '-hotScore' }),
       comicsAPI.getLatest(),
-      tagsAPI.getHot('content'),
       forumAPI.getHotTopics(),
-    ]).then(([rankRes, latestRes, tagRes, topicRes]) => {
-      setRankings(rankRes.data)
-      setLatestComics(latestRes.data)
-      setHotTags(tagRes.data.slice(0, 12))
-      setHotTopics(topicRes.data)
-    }).catch(console.error)
-    .finally(() => setLoading(false))
+      tagsAPI.getHot('content'),
+    ]).then(([hot, rank, newcomer, latest, topics, tags]) => {
+      setData({
+        hot: hot.data,
+        rankings: rank.data,
+        newcomer: newcomer.data.comics,
+        latest: latest.data,
+        topics: topics.data.slice(0, 10),
+        tags: tags.data?.slice(0, 12) || [],
+      })
+    }).catch(console.error).finally(() => setLoading(false))
   }, [])
-
-  const switchRank = async (type) => {
-    setRankTab(type)
-    try {
-      const res = await comicsAPI.getRankings(type)
-      setRankings(res.data)
-    } catch (err) { console.error(err) }
-  }
 
   if (loading) return <Loading />
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 rounded-2xl p-8 md:p-10 mb-8 text-white">
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">ComicHub</h1>
-        <p className="text-white/80 text-lg mb-6">发现你喜欢的漫画，见证每一部神作的诞生</p>
-        <div className="flex flex-wrap gap-2">
-          <Link to="/browse" className="px-5 py-2.5 bg-white text-indigo-600 font-semibold rounded-lg hover:bg-indigo-50 transition">
-            开始探索
-          </Link>
-          <Link to="/community" className="px-5 py-2.5 bg-white/20 text-white font-semibold rounded-lg hover:bg-white/30 transition">
-            进入社区
-          </Link>
-        </div>
-      </div>
+  const heroComic = data.hot[0]
+  const featuredComics = data.hot.slice(1, 5)
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="lg:col-span-2">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white">📊 排行榜</h2>
-            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5">
-              {TAB_LIST.map((tab) => (
-                <button
-                  key={tab.key}
-                  onClick={() => switchRank(tab.key)}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${rankTab === tab.key ? 'bg-white dark:bg-gray-700 text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-                >
-                  {tab.label}
-                </button>
+  return (
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen pb-8">
+      {/* Hero Banner */}
+      {heroComic && (
+        <Link to={`/comic/${heroComic._id}`} className="block relative h-[280px] sm:h-[360px] overflow-hidden group/banner">
+          <img src={heroComic.cover} alt="" className="w-full h-full object-cover group-hover/banner:scale-105 transition duration-700" />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-gray-50 via-transparent to-transparent" />
+          <div className="absolute bottom-12 left-8 sm:left-12 max-w-lg">
+            <div className="flex items-center space-x-2 mb-2">
+              <span className="px-2 py-0.5 bg-pink-500/90 text-white text-xs font-bold rounded">🔥 热门</span>
+              {heroComic.contentTags?.slice(0, 3).map((t) => (
+                <span key={t} className="px-2 py-0.5 bg-white/20 text-white text-xs rounded-full backdrop-blur">{t}</span>
               ))}
             </div>
+            <h1 className="text-2xl sm:text-4xl font-extrabold text-white mb-2 drop-shadow-lg">{heroComic.title}</h1>
+            <p className="text-white/80 text-sm line-clamp-2 hidden sm:block">{heroComic.description}</p>
+            <div className="flex items-center space-x-4 mt-3 text-white/70 text-sm">
+              <span>{heroComic.author}</span>
+              <span>🔥 {heroComic.hotScore}</span>
+              <span>👥 {heroComic.followers} 追</span>
+            </div>
           </div>
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
-            {rankings.map((comic, idx) => (
-              <Link key={comic._id} to={`/comic/${comic._id}`} className="flex items-center px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition border-b last:border-0">
-                <span className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold mr-3 ${idx < 3 ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-500'}`}>
-                  {idx + 1}
-                </span>
-                <div className="w-12 h-16 rounded overflow-hidden bg-gray-200 mr-3 flex-shrink-0">
-                  {comic.cover && <img src={comic.cover} alt="" className="w-full h-full object-cover" />}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-medium text-gray-900 dark:text-white text-sm truncate">{comic.title}</h3>
-                  <p className="text-xs text-gray-500">{comic.author} · {comic.status}</p>
-                  <div className="flex items-center space-x-2 mt-0.5 text-xs text-gray-400">
-                    {comic.contentTags?.slice(0, 3).map(t => <span key={t} className="bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded">{t}</span>)}
+          <div className="absolute bottom-4 left-12 flex space-x-1">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className={`w-2 h-1 rounded-full ${i === 0 ? 'bg-pink-500 w-5' : 'bg-white/30'}`} />
+            ))}
+          </div>
+        </Link>
+      )}
+
+      <div className="max-w-7xl mx-auto px-4 -mt-6 relative z-10">
+        {/* Featured Row */}
+        {featuredComics.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-10">
+            {featuredComics.map((comic) => (
+              <Link key={comic._id} to={`/comic/${comic._id}`} className="group">
+                <div className="relative aspect-[2/1] rounded-xl overflow-hidden bg-gray-100 shadow-md group-hover:shadow-xl transition-all group-hover:-translate-y-1">
+                  <img src={comic.cover} alt="" className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                  <div className="absolute bottom-2 left-3 right-3">
+                    <h3 className="text-sm font-bold text-white truncate">{comic.title}</h3>
+                    <p className="text-xs text-white/70">{comic.author}</p>
                   </div>
                 </div>
-                <div className="text-right ml-3">
-                  <div className="text-sm font-bold text-red-500">{rankTab === 'weekly' ? `🔥 ${comic.weeklyVotes}` : rankTab === 'monthly' ? `📈 ${comic.monthlyVotes}` : `⭐ ${comic.hotScore}`}</div>
-                  <div className="text-xs text-gray-400">{comic.followers} 追</div>
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* 排行榜 */}
+        <SectionTitle title="📊 高能排行" more="/browse?sort=-hotScore" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-10">
+          {data.rankings.slice(0, 5).map((comic, idx) => (
+            <Link key={comic._id} to={`/comic/${comic._id}`} className={`group relative rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-lg transition-all ${idx === 0 ? 'lg:row-span-2 lg:col-span-2' : ''}`}>
+              <div className={`relative ${idx === 0 ? 'aspect-[16/10]' : 'aspect-[3/2]'}`}>
+                <img src={comic.cover} alt="" className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <span className={`absolute top-2 left-2 w-7 h-7 rounded-lg flex items-center justify-center text-white text-sm font-extrabold shadow-lg ${idx < 3 ? 'bg-gradient-to-br from-pink-500 to-rose-500' : 'bg-gray-600'}`}>
+                  {idx + 1}
+                </span>
+              </div>
+              <div className={`p-3 ${idx !== 0 ? '' : ''}`}>
+                <h3 className="font-bold text-sm text-gray-900 truncate">{comic.title}</h3>
+                <p className="text-xs text-gray-400 mt-0.5">{comic.author}</p>
+                <div className="flex items-center space-x-2 mt-1.5">
+                  {comic.contentTags?.slice(0, 2).map(t => (
+                    <span key={t} className="text-[10px] px-1.5 py-0.5 bg-pink-50 text-pink-600 rounded-full">{t}</span>
+                  ))}
                 </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        <div>
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">🏷️ 热门标签</h2>
-          <div className="flex flex-wrap gap-1.5 mb-6">
-            {hotTags.map((tag) => (
-              <Link
-                key={tag._id}
-                to={`/browse?tag=${tag.name}`}
-                className="px-3 py-1.5 rounded-full text-xs font-medium hover:opacity-80 transition"
-                style={{ backgroundColor: tag.color + '20', color: tag.color, border: `1px solid ${tag.color}40` }}
-              >
-                {tag.icon} {tag.name}
-              </Link>
-            ))}
-          </div>
-
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">💬 社区热帖</h2>
-          <div className="space-y-2">
-            {hotTopics.slice(0, 5).map((topic) => (
-              <TopicCard key={topic._id} topic={topic} />
-            ))}
-          </div>
-          <Link to="/community" className="block text-center mt-3 text-sm text-indigo-600 hover:underline">
-            查看更多讨论 →
-          </Link>
-        </div>
-      </div>
-
-      <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">🆕 最近更新</h2>
-          <Link to="/browse?sort=-updatedAt" className="text-sm text-indigo-600 hover:underline">查看更多</Link>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {latestComics.map((comic) => (
-            <ComicCard key={comic._id} comic={comic} />
+                {idx === 0 && <p className="text-xs text-gray-500 mt-2 line-clamp-2">{comic.description}</p>}
+              </div>
+            </Link>
           ))}
         </div>
-      </section>
+
+        {/* 新人黑马 - 横向滚动 */}
+        <SectionTitle title="🚀 新人黑马" more="/browse?isNewcomer=true" />
+        <ScrollRow>
+          {data.newcomer.map((comic) => (
+            <Link key={comic._id} to={`/comic/${comic._id}`} className="flex-shrink-0 w-[140px] sm:w-[160px] group" style={{ scrollSnapAlign: 'start' }}>
+              <div className="aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 shadow-sm group-hover:shadow-lg transition-all group-hover:-translate-y-1">
+                <img src={comic.cover} alt="" className="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+              </div>
+              <div className="mt-2">
+                <h3 className="text-sm font-bold text-gray-900 truncate">{comic.title}</h3>
+                <p className="text-xs text-gray-400">{comic.author}</p>
+                <span className="text-[10px] text-pink-500 font-medium">{comic.schedule}·{comic.hotScore}热度</span>
+              </div>
+            </Link>
+          ))}
+        </ScrollRow>
+
+        <div className="mb-10" />
+
+        {/* 热门标签 */}
+        <SectionTitle title="🏷️ 热门标签" />
+        <div className="flex flex-wrap gap-2 mb-10">
+          {data.tags.map((tag) => (
+            <Link key={tag._id} to={`/browse?tag=${tag.name}`}
+              className="px-4 py-2 rounded-full text-sm font-medium transition-all hover:scale-105 shadow-sm hover:shadow-md"
+              style={{ backgroundColor: tag.color + '15', color: tag.color, border: `1px solid ${tag.color}30` }}>
+              {tag.icon} {tag.name}
+            </Link>
+          ))}
+        </div>
+
+        {/* 最近更新 */}
+        <SectionTitle title="🆕 最近更新" more="/browse?sort=-updatedAt" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-10">
+          {data.latest.map((comic) => (
+            <Link key={comic._id} to={`/comic/${comic._id}`} className="group">
+              <div className="aspect-[3/4] rounded-lg overflow-hidden bg-gray-100 shadow-sm group-hover:shadow-md transition-all group-hover:-translate-y-1">
+                <img src={comic.cover} alt="" className="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" />
+              </div>
+              <div className="mt-1.5">
+                <h3 className="text-xs font-bold text-gray-900 truncate">{comic.title}</h3>
+                <p className="text-[10px] text-gray-400">{comic.author}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+
+        {/* 社区热帖 */}
+        <SectionTitle title="💬 全网热议" more="/community" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
+          {data.topics.map((topic) => (
+            <Link key={topic._id} to={`/community/topic/${topic._id}`} className="group bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition border border-gray-50">
+              <div className="flex items-start space-x-3">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-400 to-indigo-500 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                  {topic.user?.username?.charAt(0)?.toUpperCase() || '?'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-sm text-gray-900 group-hover:text-pink-500 transition truncate">{topic.title}</h4>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {topic.user?.username} · {topic.replyCount || 0} 回复 · {topic.views || 0} 阅读
+                  </p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }
